@@ -5,11 +5,19 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>SnekTech.GodotGadgets</PackageId>
+        <Authors>Snek</Authors>
+        <Description>Utilities used for 2D game dev in Godot 4.</Description>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Dumpify" Version="0.6.6" />
-      <PackageReference Include="GodotSharp" Version="4.4.1" />
+        <PackageReference Include="Dumpify" Version="0.6.6"/>
+        <PackageReference Include="GodotSharp" Version="4.4.1"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="readme.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 </Project>
