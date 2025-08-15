@@ -23,6 +23,6 @@ public static class NodeExtensions
 
     public static void SetModulateAlpha(this CanvasItem canvasItem, float alpha)
     {
-        canvasItem.Modulate = canvasItem.Modulate with { A = alpha };
+        canvasItem.Modulate = canvasItem.Modulate with { A = alpha.Clamp01() };
     }
 }

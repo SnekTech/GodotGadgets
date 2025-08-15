@@ -52,4 +52,7 @@ public static class CommonExtensions
         list.Clear();
         list.AddRange(array);
     }
+
+    public static float Clamp01(this float x) => float.Clamp(x, 0, 1);
+    public static double Clamp01(this double x) => double.Clamp(x, 0, 1);
 }
