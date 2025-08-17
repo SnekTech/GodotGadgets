@@ -13,7 +13,8 @@ public static class TaskExtensions
             catch (OperationCanceledException e)
             {
                 GD.Print("---------- Under Control -----------");
-                GD.Print($"A task was canceled, token {e.CancellationToken}");
+                GD.Print($"A task was canceled:");
+                e.DumpGd();
                 GD.Print("---------- Under Control -----------");
             }
             catch (Exception e)
@@ -32,4 +33,5 @@ public static class TaskExtensions
             onError?.Invoke(e);
         }
     }
+
 }

@@ -25,4 +25,24 @@ public static class NodeExtensions
     {
         canvasItem.Modulate = canvasItem.Modulate with { A = alpha.Clamp01() };
     }
+
+    private static readonly Dictionary<Node, CancellationTokenSource> TreeExitCtsDict = [];
+
+    public static CancellationToken GetCancellationTokenOnTreeExit(this Node node)
+    {
+        return GetCts().Token;
+
+        CancellationTokenSource GetCts()
+        {
+            if (!TreeExitCtsDict.TryGetValue(node, out var cts))
+            {
+                cts = new CancellationTokenSource();
+                TreeExitCtsDict[node] = cts;
+
+                node.TreeExiting += () => { cts.Cancel(); };
+            }
+
+            return cts;
+        }
+    }
 }
