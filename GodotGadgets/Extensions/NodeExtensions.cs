@@ -39,15 +39,25 @@ public static class NodeExtensions
                 cts = new CancellationTokenSource();
                 TreeExitCtsDict[node] = cts;
 
-                node.TreeExiting += () => cts.Cancel();
-                node.TreeExited += () =>
-                {
-                    cts.Dispose();
-                    TreeExitCtsDict.Remove(node);
-                };
+                node.TreeExiting += OnTreeExiting;
+                node.TreeExited += OnTreeExited;
             }
 
             return cts;
+
+            void OnTreeExiting()
+            {
+                cts.Cancel();
+            }
+
+            void OnTreeExited()
+            {
+                cts.Dispose();
+                TreeExitCtsDict.Remove(node);
+
+                node.TreeExiting -= OnTreeExiting;
+                node.TreeExited -= OnTreeExited;
+            }
         }
     }
 }
