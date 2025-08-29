@@ -6,3 +6,4 @@ riderModule.iml
 
 # custom ignore
 **/.idea
+**/*.DotSettings.user
