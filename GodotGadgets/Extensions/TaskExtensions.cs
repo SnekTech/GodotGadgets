@@ -1,7 +1,11 @@
-﻿namespace GodotGadgets.Extensions;
+﻿using JetBrains.Annotations;
 
+namespace GodotGadgets.Extensions;
+
+[UsedImplicitly]
 public static class TaskExtensions
 {
+    [UsedImplicitly]
     public static void Fire(this Task task, Action? onComplete = null, Action<Exception>? onError = null)
     {
         task.Fire(onComplete, onError, PrinterGD.Instance);
