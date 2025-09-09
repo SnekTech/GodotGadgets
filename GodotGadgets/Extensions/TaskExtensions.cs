@@ -2,7 +2,13 @@
 
 public static class TaskExtensions
 {
-    public static async void Fire(this Task task, Action? onComplete = null, Action<Exception>? onError = null)
+    public static void Fire(this Task task, Action? onComplete = null, Action<Exception>? onError = null)
+    {
+        task.Fire(onComplete, onError, PrinterGD.Instance);
+    }
+
+    private static async void Fire(this Task task, Action? onComplete, Action<Exception>? onError,
+        ITaskFireStatusPrinter printer)
     {
         try
         {
@@ -10,17 +16,16 @@ public static class TaskExtensions
             {
                 await task;
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
-                GD.Print("---------- Under Control -----------");
-                GD.Print($"A task was canceled:");
-                e.DumpGd();
-                GD.Print("---------- Under Control -----------");
+                printer.Print("---------- Under Control -----------");
+                printer.Print("A task was canceled:");
+                printer.Print("---------- Under Control -----------");
             }
             catch (Exception e)
             {
-                GD.PrintErr("something wrong during fire & forget: ");
-                GD.PrintErr(e);
+                printer.PrintErr("something wrong during fire & forget: ");
+                printer.PrintErr(e);
                 onError?.Invoke(e);
             }
 
@@ -28,10 +33,31 @@ public static class TaskExtensions
         }
         catch (Exception e)
         {
-            GD.PrintErr("something wrong on fire & forget complete : ");
-            GD.PrintErr(e);
+            printer.PrintErr("something wrong on fire & forget complete : ");
+            printer.PrintErr(e);
             onError?.Invoke(e);
         }
     }
+}
 
+public interface ITaskFireStatusPrinter
+{
+    void Print(string what);
+    void PrintErr(params object[] what);
+}
+
+public class PrinterGD : ITaskFireStatusPrinter
+{
+    private PrinterGD()
+    {
+    }
+
+    public static readonly PrinterGD Instance = new();
+
+    public void Print(string what) => GD.Print(what);
+
+    public void PrintErr(params object[] what)
+    {
+        GD.PushError(what);
+    }
 }
