@@ -44,15 +44,6 @@ public static class CommonExtensions
         return list[randomIndex];
     }
 
-    public static void Shuffle<T>(this List<T> list)
-    {
-        var random = new Random();
-        var array = list.ToArray();
-        random.Shuffle(array);
-        list.Clear();
-        list.AddRange(array);
-    }
-
     public static float Clamp01(this float x) => float.Clamp(x, 0, 1);
     public static double Clamp01(this double x) => double.Clamp(x, 0, 1);
 
@@ -60,5 +51,15 @@ public static class CommonExtensions
     {
         var (x, y) = vector2.Round();
         return new Vector2I((int)x, (int)y);
+    }
+
+    extension<T>(IEnumerable<T> elements)
+    {
+        public IEnumerable<T> Shuffle()
+        {
+            var arr = elements.ToArray();
+            Random.Shared.Shuffle(arr);
+            return arr;
+        }
     }
 }
