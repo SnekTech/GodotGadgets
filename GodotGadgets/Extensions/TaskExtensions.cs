@@ -1,45 +1,45 @@
-﻿using JetBrains.Annotations;
+﻿namespace GodotGadgets.Extensions;
 
-namespace GodotGadgets.Extensions;
-
-[UsedImplicitly]
 public static class TaskExtensions
 {
-    [UsedImplicitly]
-    public static void Fire(this Task task, Action? onComplete = null, Action<Exception>? onError = null)
+    extension(Task task)
     {
-        task.Fire(onComplete, onError, PrinterGD.Instance);
-    }
+        [UsedImplicitly]
+        public void Fire(Action? onComplete = null, Action<Exception>? onError = null)
+        {
+            task.Fire(onComplete, onError, PrinterGD.Instance);
+        }
 
-    private static async void Fire(this Task task, Action? onComplete, Action<Exception>? onError,
-        ITaskFireStatusPrinter printer)
-    {
-        try
+        private async void Fire(Action? onComplete, Action<Exception>? onError,
+            ITaskFireStatusPrinter printer)
         {
             try
             {
-                await task;
-            }
-            catch (OperationCanceledException)
-            {
-                printer.Print("---------- Under Control -----------");
-                printer.Print("A task was canceled:");
-                printer.Print("---------- Under Control -----------");
+                try
+                {
+                    await task;
+                }
+                catch (OperationCanceledException)
+                {
+                    printer.Print("---------- Under Control -----------");
+                    printer.Print("A task was canceled:");
+                    printer.Print("---------- Under Control -----------");
+                }
+                catch (Exception e)
+                {
+                    printer.PrintErr("something wrong during fire & forget: ");
+                    printer.PrintErr(e);
+                    onError?.Invoke(e);
+                }
+
+                onComplete?.Invoke();
             }
             catch (Exception e)
             {
-                printer.PrintErr("something wrong during fire & forget: ");
+                printer.PrintErr("something wrong on fire & forget complete : ");
                 printer.PrintErr(e);
                 onError?.Invoke(e);
             }
-
-            onComplete?.Invoke();
-        }
-        catch (Exception e)
-        {
-            printer.PrintErr("something wrong on fire & forget complete : ");
-            printer.PrintErr(e);
-            onError?.Invoke(e);
         }
     }
 }
@@ -50,7 +50,7 @@ public interface ITaskFireStatusPrinter
     void PrintErr(params object[] what);
 }
 
-public class PrinterGD : ITaskFireStatusPrinter
+public sealed class PrinterGD : ITaskFireStatusPrinter
 {
     private PrinterGD()
     {

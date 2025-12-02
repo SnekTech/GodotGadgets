@@ -2,17 +2,25 @@
 
 public static class NodeExtensions
 {
-    public static void ClearChildren(this Node node)
+    extension(Node node)
     {
-        foreach (var child in node.GetChildren())
+        [UsedImplicitly]
+        public void ClearChildren()
         {
-            child.QueueFree();
+            foreach (var child in node.GetChildren())
+            {
+                child.QueueFree();
+            }
         }
+
+        public IEnumerable<T> GetChildrenOfType<T>() where T : Node => node.GetChildren().OfType<T>();
+
+        public T GetFirstChildOfType<T>() where T : Node => node.GetChildrenOfType<T>().First();
     }
 
-    public static IEnumerable<T> GetChildrenOfType<T>(this Node node)
+    extension(Area2D area2D)
     {
-        return node.GetChildren().OfType<T>();
+        public CollisionShape2D CollisionShape => area2D.GetFirstChildOfType<CollisionShape2D>();
     }
 
     public static void SetStyleBox(this Panel panel, StyleBox styleBox)
