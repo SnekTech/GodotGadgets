@@ -42,6 +42,15 @@ public static class TaskExtensions
             }
         }
     }
+    
+    extension(CancellationTokenSource cancellationTokenSource)
+    {
+        public void CancelAndDispose()
+        {
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
+        }
+    }
 }
 
 public interface ITaskFireStatusPrinter
