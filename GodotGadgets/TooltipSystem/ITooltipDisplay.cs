@@ -12,13 +12,13 @@ public sealed class TooltipDisplayConsole : ITooltipDisplay
 {
     public void ShowTooltip(TooltipContent content, Rect2 targetGlobalRect)
     {
-        "Showing tooltip: \n".DumpGd();
+        "Showing tooltip:".DumpGd();
         content.DumpGd(nameof(content));
         targetGlobalRect.DumpGd(nameof(targetGlobalRect));
     }
 
     public void HideTooltip()
     {
-        "Hiding tooltip: \n".DumpGd();
+        "Hiding tooltip:".DumpGd();
     }
 }

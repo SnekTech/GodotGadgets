@@ -30,9 +30,12 @@ public static class TooltipFactory
 
     extension(TooltipTriggerBehavior)
     {
-        public static TooltipTriggerBehavior FromArea2D(Area2D area2D) =>
-            new(area2D.ToTooltipTarget());
-        public static TooltipTriggerBehavior FromControl(Control control) =>
-            new(control.ToTooltipTarget());
+        public static TooltipTriggerBehavior New(Node parentNode) =>
+            parentNode switch
+            {
+                Control c => new TooltipTriggerBehavior(c.ToTooltipTarget()), 
+                Area2D area2D => new TooltipTriggerBehavior(area2D.ToTooltipTarget()),
+                _ => throw new ArgumentException($"node {parentNode} is not Control or Area2D"),
+            };
     }
 }
