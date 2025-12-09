@@ -1,17 +1,18 @@
 ﻿namespace GodotGadgets.TooltipSystem;
 
-public class TooltipTriggerBehavior(ITooltipTarget target, ITooltipDisplay tooltipDisplay)
+public class TooltipTriggerBehavior(ITooltipTarget target)
 {
     public TooltipContent Content { get; set; } = TooltipContent.New("default tooltip", "default content");
+    public ITooltipDisplay TooltipDisplay { private get; set; } = new TooltipDisplayConsole();
 
     public void OnMouseEntered()
     {
-        tooltipDisplay.ShowTooltip(Content, target.GlobalRect);
+        TooltipDisplay.ShowTooltip(Content, target.GlobalRect);
     }
 
     public void OnMouseExited()
     {
-        tooltipDisplay.HideTooltip();
+        TooltipDisplay.HideTooltip();
     }
 }
 
@@ -29,9 +30,9 @@ public static class TooltipFactory
 
     extension(TooltipTriggerBehavior)
     {
-        public static TooltipTriggerBehavior FromArea2D(Area2D area2D, ITooltipDisplay display) =>
-            new(area2D.ToTooltipTarget(), display);
-        public static TooltipTriggerBehavior FromControl(Control control, ITooltipDisplay display) =>
-            new(control.ToTooltipTarget(), display);
+        public static TooltipTriggerBehavior FromArea2D(Area2D area2D) =>
+            new(area2D.ToTooltipTarget());
+        public static TooltipTriggerBehavior FromControl(Control control) =>
+            new(control.ToTooltipTarget());
     }
 }
