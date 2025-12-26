@@ -1,6 +1,6 @@
-﻿namespace GodotGadgets.Extensions;
+﻿namespace GodotGadgets.Tasks;
 
-public static class TaskExtensions
+public static class TaskFireAndForgetExtensions
 {
     extension(Task task)
     {
@@ -40,15 +40,6 @@ public static class TaskExtensions
                 printer.PrintErr(e);
                 onError?.Invoke(e);
             }
-        }
-    }
-    
-    extension(CancellationTokenSource cancellationTokenSource)
-    {
-        public void CancelAndDispose()
-        {
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Dispose();
         }
     }
 }
