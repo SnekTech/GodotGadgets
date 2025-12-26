@@ -15,12 +15,26 @@ public static class NodeExtensions
 
         public IEnumerable<T> GetChildrenOfType<T>() where T : Node => node.GetChildren().OfType<T>();
 
-        public T GetFirstChildOfType<T>() where T : Node => node.GetChildrenOfType<T>().First();
+        public T? GetFirstChildOfType<T>() where T : Node => node.GetChildrenOfType<T>().FirstOrDefault();
+
+        public T AddImmediateChild<T>() where T : Node, new()
+        {
+            var child = new T();
+            node.AddChild(child);
+            return child;
+        }
+
+        public T GetOrAddImmediateChild<T>() where T : Node, new()
+        {
+            var child = node.GetFirstChildOfType<T>();
+            child ??= node.AddImmediateChild<T>();
+            return child;
+        }
     }
 
     extension(Area2D area2D)
     {
-        public CollisionShape2D CollisionShape => area2D.GetFirstChildOfType<CollisionShape2D>();
+        public CollisionShape2D CollisionShape => area2D.GetFirstChildOfType<CollisionShape2D>()!;
     }
 
     public static void SetStyleBox(this Panel panel, StyleBox styleBox)
@@ -32,40 +46,5 @@ public static class NodeExtensions
     public static void SetModulateAlpha(this CanvasItem canvasItem, float alpha)
     {
         canvasItem.Modulate = canvasItem.Modulate with { A = alpha.Clamp01() };
-    }
-
-    private static readonly Dictionary<Node, CancellationTokenSource> TreeExitCtsDict = [];
-
-    public static CancellationToken GetCancellationTokenOnTreeExit(this Node node)
-    {
-        return GetCts().Token;
-
-        CancellationTokenSource GetCts()
-        {
-            if (!TreeExitCtsDict.TryGetValue(node, out var cts))
-            {
-                cts = new CancellationTokenSource();
-                TreeExitCtsDict[node] = cts;
-
-                node.TreeExiting += OnTreeExiting;
-                node.TreeExited += OnTreeExited;
-            }
-
-            return cts;
-
-            void OnTreeExiting()
-            {
-                cts.Cancel();
-            }
-
-            void OnTreeExited()
-            {
-                cts.Dispose();
-                TreeExitCtsDict.Remove(node);
-
-                node.TreeExiting -= OnTreeExiting;
-                node.TreeExited -= OnTreeExited;
-            }
-        }
     }
 }
