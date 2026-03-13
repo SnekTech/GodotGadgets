@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="Dumpify" Version="0.6.6"/>
-        <PackageReference Include="GodotSharp" Version="4.4.1"/>
+        <PackageReference Include="GodotSharp" Version="4.6.1" />
         <PackageReference Include="GTweensGodot" Version="6.0.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" PrivateAssets="All" />
     </ItemGroup>
