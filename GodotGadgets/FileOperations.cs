@@ -7,7 +7,7 @@ public static class FileOperations
     public static async Task SafeWriteAllTextAsync(string path, string contents, CancellationToken ct = default)
     {
         // 1. 在同一目录下创建一个唯一的临时文件
-        var tempPath = Path.Combine(Path.GetDirectoryName(path)!, $"$tmp_{Guid.NewGuid()}_{Path.GetFileName(path)}");
+        var tempPath = Path.Combine(Path.GetDirectoryName(path)!, $"temp_{Path.GetFileName(path)}");
 
         try
         {
