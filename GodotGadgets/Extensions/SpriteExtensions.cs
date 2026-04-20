@@ -2,8 +2,8 @@
 
 public static class SpriteExtensions
 {
-    public static T GetMaterialAs<T>(this Sprite2D sprite) where T : Material
-        => (T)sprite.Material;
+    public static T GetMaterialAs<T>(this CanvasItem canvasItem) where T : Material
+        => (T)canvasItem.Material;
 
     public static T GetTextureAs<T>(this Sprite2D sprite) where T : Texture2D
         => (T)sprite.Texture;
