@@ -20,38 +20,19 @@ public static class TaskCancellationExtensions
             => token.LinkTo(node.GetCancellationTokenOnTreeExit());
     }
 
-    static readonly Dictionary<Node, CancellationTokenSource> TreeExitCtsCache = [];
-
     public static CancellationToken GetCancellationTokenOnTreeExit(this Node node)
     {
-        return GetCts().Token;
+        if (!node.IsInsideTree())
+            return new CancellationToken(true);
 
-        CancellationTokenSource GetCts()
+        var cts = new CancellationTokenSource();
+        node.TreeExited += OnExit;
+        return cts.Token;
+
+        void OnExit()
         {
-            if (TreeExitCtsCache.TryGetValue(node, out var cts))
-                return cts;
-
-            cts = new CancellationTokenSource();
-            TreeExitCtsCache[node] = cts;
-
-            node.TreeExiting += OnTreeExiting;
-            node.TreeExited += OnTreeExited;
-
-            return cts;
-
-            void OnTreeExiting()
-            {
-                cts.Cancel();
-            }
-
-            void OnTreeExited()
-            {
-                cts.Dispose();
-                TreeExitCtsCache.Remove(node);
-
-                node.TreeExiting -= OnTreeExiting;
-                node.TreeExited -= OnTreeExited;
-            }
+            cts.CancelAndDispose();
+            node.TreeExited -= OnExit;
         }
     }
 }
