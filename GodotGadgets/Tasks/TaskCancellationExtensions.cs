@@ -13,6 +13,7 @@ public static class TaskCancellationExtensions
 
     extension(CancellationToken token)
     {
+        public CancellationTokenSource CreateLinked() => CancellationTokenSource.CreateLinkedTokenSource(token);
         public CancellationTokenSource LinkTo(CancellationToken anotherToken) =>
             CancellationTokenSource.CreateLinkedTokenSource(token, anotherToken);
 
