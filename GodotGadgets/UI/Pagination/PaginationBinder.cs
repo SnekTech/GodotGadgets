@@ -33,7 +33,8 @@ public sealed class PaginationBinder<TItem> : IDisposable
     readonly Func<TItem, Control> _entryFactory;
     readonly Action<Exception>? _onError;
 
-    CancellationTokenSource? _refreshCts;
+    CancellationTokenSource? _contentCts;
+    readonly List<Task> _pendingContentTasks = [];
 
     // 保存委托引用，以便移除事件
     readonly Action _onPrev;
@@ -53,12 +54,11 @@ public sealed class PaginationBinder<TItem> : IDisposable
         _entryFactory = entryFactory;
         _onError = onError;
 
-        // 创建无捕获的委托，以便正确移除
-        _onPrev = () => SafeFireAndForget(ct => _pagination.GoToPreviousPageAsync(ct));
-        _onNext = () => SafeFireAndForget(ct => _pagination.GoToNextPageAsync(ct));
-        _onFirst = () => SafeFireAndForget(ct => _pagination.GoToFirstPageAsync(ct));
-        _onLast = () => SafeFireAndForget(ct => _pagination.GoToLastPageAsync(ct));
-        _onDataChanged = () => SafeFireAndForget(_ => RefreshAsync());
+        _onPrev = () => SafeFireAndForget(pagination.GoToPreviousPageAsync());
+        _onNext = () => SafeFireAndForget(pagination.GoToNextPageAsync());
+        _onFirst = () => SafeFireAndForget(pagination.GoToFirstPageAsync());
+        _onLast = () => SafeFireAndForget(pagination.GoToLastPageAsync());
+        _onDataChanged = () => SafeFireAndForget(RefreshAsync());
 
         ui.PreviousPageRequested += _onPrev;
         ui.NextPageRequested += _onNext;
@@ -68,14 +68,15 @@ public sealed class PaginationBinder<TItem> : IDisposable
         _pagination.DataChanged += _onDataChanged;
 
         // 初始加载
-        SafeFireAndForget(ct => _pagination.LoadInitialAsync(ct));
+        SafeFireAndForget(pagination.LoadInitialAsync());
     }
-    
-    async void SafeFireAndForget(Func<CancellationToken, Task> asyncAction)
+
+    // todo: use extension method for fire & forget
+    async void SafeFireAndForget(Task task)
     {
         try
         {
-            await asyncAction(_refreshCts?.Token ?? CancellationToken.None);
+            await task;
         }
         catch (OperationCanceledException)
         {
@@ -90,16 +91,29 @@ public sealed class PaginationBinder<TItem> : IDisposable
         }
     }
 
-    Task RefreshAsync()
+    async Task RefreshAsync()
     {
-        _refreshCts?.CancelAndDispose();
-        _refreshCts = new CancellationTokenSource();
-        
+        _contentCts?.CancelAndDispose();
+        _contentCts = new CancellationTokenSource();
+
+        if (_pendingContentTasks.Count > 0)
+        {
+            try
+            {
+                await Task.WhenAll(_pendingContentTasks);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            _pendingContentTasks.Clear();
+        }
+
         UpdateNavigationState();
         UpdatePageText();
         UpdateContent();
 
-        return Task.CompletedTask;
+        return;
 
         void UpdateNavigationState()
         {
@@ -120,7 +134,8 @@ public sealed class PaginationBinder<TItem> : IDisposable
 
                 if (control is IAsyncContent<TItem> asyncContent)
                 {
-                    SafeFireAndForget(ct => asyncContent.InitAsync(item, ct));
+                    var task = asyncContent.InitAsync(item, _contentCts.Token);
+                    _pendingContentTasks.Add(task);
                 }
             }
         }
@@ -130,8 +145,9 @@ public sealed class PaginationBinder<TItem> : IDisposable
 
     public void Dispose()
     {
-        _refreshCts?.CancelAndDispose();
-        
+        _contentCts?.CancelAndDispose();
+        _pagination.Dispose();
+
         _ui.PreviousPageRequested -= _onPrev;
         _ui.NextPageRequested -= _onNext;
         _ui.FirstPageRequested -= _onFirst;
