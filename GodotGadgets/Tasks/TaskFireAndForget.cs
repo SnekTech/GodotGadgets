@@ -4,41 +4,39 @@ public static class TaskFireAndForgetExtensions
 {
     extension(Task task)
     {
-        [UsedImplicitly]
-        public void Fire(Action? onComplete = null, Action<Exception>? onError = null)
-        {
-            task.Fire(onComplete, onError, PrinterGD.Instance);
-        }
+        public void Fire(Action<Exception>? onError = null)
+            => task.Fire(onError, onComplete: null, onCompleteError: null, PrinterGD.Instance);
 
-        private async void Fire(Action? onComplete, Action<Exception>? onError,
+        async void Fire(Action<Exception>? onError, Action? onComplete, Action<Exception>? onCompleteError,
             ITaskFireStatusPrinter printer)
         {
             try
             {
-                try
-                {
-                    await task;
-                }
-                catch (OperationCanceledException)
-                {
-                    printer.Print("---------- Under Control -----------");
-                    printer.Print("A task was canceled:");
-                    printer.Print("---------- Under Control -----------");
-                }
-                catch (Exception e)
-                {
-                    printer.PrintErr("something wrong during fire & forget: ");
-                    printer.PrintErr(e);
-                    onError?.Invoke(e);
-                }
+                await task;
+            }
+            catch (OperationCanceledException)
+            {
+                printer.Print("---------- Under Control -----------");
+                printer.Print("A task was canceled:");
+                printer.Print("---------- Under Control -----------");
+                return;
+            }
+            catch (Exception e)
+            {
+                printer.PrintErr("something wrong during fire & forget: ");
+                printer.PrintErr(e);
+                onError?.Invoke(e);
+                return;
+            }
 
+            try
+            {
                 onComplete?.Invoke();
             }
             catch (Exception e)
             {
-                printer.PrintErr("something wrong on fire & forget complete : ");
-                printer.PrintErr(e);
-                onError?.Invoke(e);
+                printer.PrintErr("onComplete callback threw: ", e);
+                onCompleteError?.Invoke(e);
             }
         }
     }
@@ -52,7 +50,7 @@ public interface ITaskFireStatusPrinter
 
 public sealed class PrinterGD : ITaskFireStatusPrinter
 {
-    private PrinterGD()
+    PrinterGD()
     {
     }
 

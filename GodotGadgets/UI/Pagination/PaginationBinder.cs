@@ -31,7 +31,6 @@ public sealed class PaginationBinder<TItem> : IDisposable
     readonly IPaginationUI _ui;
     readonly Pagination<TItem> _pagination;
     readonly Func<TItem, Control> _entryFactory;
-    readonly Action<Exception>? _onError;
 
     CancellationTokenSource? _contentCts;
     readonly List<Task> _pendingContentTasks = [];
@@ -46,19 +45,18 @@ public sealed class PaginationBinder<TItem> : IDisposable
     public PaginationBinder(
         IPaginationUI ui,
         Pagination<TItem> pagination,
-        Func<TItem, Control> entryFactory,
-        Action<Exception>? onError = null)
+        Func<TItem, Control> entryFactory
+    )
     {
         _ui = ui;
         _pagination = pagination;
         _entryFactory = entryFactory;
-        _onError = onError;
 
-        _onPrev = () => SafeFireAndForget(pagination.GoToPreviousPageAsync());
-        _onNext = () => SafeFireAndForget(pagination.GoToNextPageAsync());
-        _onFirst = () => SafeFireAndForget(pagination.GoToFirstPageAsync());
-        _onLast = () => SafeFireAndForget(pagination.GoToLastPageAsync());
-        _onDataChanged = () => SafeFireAndForget(RefreshAsync());
+        _onPrev = () => pagination.GoToPreviousPageAsync().Fire();
+        _onNext = () => pagination.GoToNextPageAsync().Fire();
+        _onFirst = () => pagination.GoToFirstPageAsync().Fire();
+        _onLast = () => pagination.GoToLastPageAsync().Fire();
+        _onDataChanged = () => RefreshAsync().Fire();
 
         ui.PreviousPageRequested += _onPrev;
         ui.NextPageRequested += _onNext;
@@ -68,27 +66,7 @@ public sealed class PaginationBinder<TItem> : IDisposable
         _pagination.DataChanged += _onDataChanged;
 
         // 初始加载
-        SafeFireAndForget(pagination.LoadInitialAsync());
-    }
-
-    // todo: use extension method for fire & forget
-    async void SafeFireAndForget(Task task)
-    {
-        try
-        {
-            await task;
-        }
-        catch (OperationCanceledException)
-        {
-            // normal cancellation, ignore
-        }
-        catch (Exception ex)
-        {
-            if (_onError != null)
-                _onError(ex);
-            else
-                System.Diagnostics.Debug.WriteLine($"[PaginationBinder] Unhandled: {ex}");
-        }
+        pagination.LoadInitialAsync().Fire();
     }
 
     async Task RefreshAsync()
