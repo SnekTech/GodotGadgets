@@ -7,7 +7,22 @@ public interface IPageQuery<TItem>
     Task<PageResult<TItem>> FetchPageAsync(PageRequest request, CancellationToken ct = default);
 }
 
-public record struct PageRequest(int PageIndex, int PageSize);
+public readonly record struct PageRequest
+{
+    public int PageIndex { get; }
+    public int PageSize { get; }
+
+    public PageRequest(int pageIndex, int pageSize)
+    {
+        PageIndex = Math.Clamp(pageIndex, 0, int.MaxValue);
+        PageSize = Math.Clamp(pageSize, 0, int.MaxValue);
+    }
+
+    public void Deconstruct(out int pageIndex, out int pageSize)
+    {
+        (pageIndex, pageSize) = (PageIndex, PageSize);
+    }
+}
 public record PageResult<TItem>(IReadOnlyList<TItem> Items, int TotalItemCount);
 
 public sealed class Pagination<TItem>(IPageQuery<TItem> query, int pageSize = 10) : IDisposable
