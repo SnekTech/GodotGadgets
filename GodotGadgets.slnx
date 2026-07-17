@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GadgetsTests/GadgetsTests.csproj" />
+  <Project Path="GodotGadgets/GodotGadgets.csproj" />
+</Solution>
