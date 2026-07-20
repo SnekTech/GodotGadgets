@@ -11,4 +11,8 @@
     <PackageReference Include="TUnit" Version="1.6*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GodotGadgets\GodotGadgets.csproj" />
+  </ItemGroup>
+
 </Project>
