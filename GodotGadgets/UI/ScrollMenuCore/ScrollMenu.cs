@@ -11,9 +11,9 @@ public sealed record MenuItemCollection
     public IReadOnlyList<IScrollMenuItem> Items { get; }
 }
 
-public class ScrollMenu(MenuItemCollection menuItemCollection)
+public sealed class ScrollMenu(MenuItemCollection menuItemCollection)
 {
-    public IScrollMenuItem CurrentFocused { get; private set; }
+    public IScrollMenuItem CurrentFocused { get; private set; } = menuItemCollection.Items[0];
 }
 
 public interface IScrollMenuItem
