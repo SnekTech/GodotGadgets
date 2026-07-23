@@ -1,22 +1,38 @@
 ﻿namespace GodotGadgets.UI.ScrollMenuCore;
 
-public sealed record MenuItemCollection
+public sealed class ScrollMenu
 {
-    public MenuItemCollection(IReadOnlyList<IScrollMenuItem> items)
+    readonly ScrollMenuConfig _items;
+    readonly int _visibleCount;
+    int _currentIndex;
+    VisibleSlot[] _visibleWindow;
+    
+    public ScrollMenu(ScrollMenuConfig scrollMenuConfig, int visibleCount = 3)
     {
-        if (items.Count < 1) throw new ArgumentException("must have at least 1 item to build a scroll menu");
-        Items = items;
+        _items = scrollMenuConfig;
     }
+
+    public event Action? FocusChanged;
     
-    public IReadOnlyList<IScrollMenuItem> Items { get; }
+    public IScrollMenuItem CurrentFocused { get; private set; }
+    public IReadOnlyList<VisibleSlot> VisibleWindow { get; private set; } = [];
+
+    public void NavigateDown()
+    {
+        throw new NotImplementedException();
+    }
+
+    void BuildVisibleWindow()
+    {
+        
+    }
 }
 
-public sealed class ScrollMenu(MenuItemCollection menuItemCollection)
-{
-    public IScrollMenuItem CurrentFocused { get; private set; } = menuItemCollection.Items[0];
-}
+public readonly record struct VisibleSlot(IScrollMenuItem Item, ItemProminence Prominence);
 
-public interface IScrollMenuItem
+public enum ItemProminence
 {
-    
+    Focused,
+    Adjacent,
+    Hidden,
 }
