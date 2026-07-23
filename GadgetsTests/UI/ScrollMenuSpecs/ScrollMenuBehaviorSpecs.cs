@@ -138,7 +138,7 @@ public class ScrollMenuBehaviorSpecs
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
         var fired = false;
-        menu.FocusChanged += () => fired = true;
+        menu.FocusChanged += _ => fired = true;
 
         menu.NavigateDown();
 
@@ -151,7 +151,7 @@ public class ScrollMenuBehaviorSpecs
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
         IReadOnlyList<VisibleSlot>? latestWindow = null;
-        menu.FocusChanged += () => latestWindow = menu.VisibleWindow;
+        menu.FocusChanged += window => latestWindow = window;
 
         menu.NavigateDown();
 

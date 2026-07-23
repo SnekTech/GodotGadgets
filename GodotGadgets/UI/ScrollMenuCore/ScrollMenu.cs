@@ -15,20 +15,22 @@ public sealed class ScrollMenu
 
     public IScrollMenuItem CurrentFocused => _items[_currentIndex];
     public IReadOnlyList<VisibleSlot> VisibleWindow { get; private set; }
-    public event Action? FocusChanged;
+    public event Action<IReadOnlyList<VisibleSlot>>? FocusChanged;
 
     public void NavigateDown()
     {
         _currentIndex = (_currentIndex + 1).Mod(_items.Count);
-        VisibleWindow = BuildVisibleWindow();
-        FocusChanged?.Invoke();
+        var snapshot = BuildVisibleWindow();
+        VisibleWindow = snapshot;
+        FocusChanged?.Invoke(snapshot);
     }
 
     public void NavigateUp()
     {
         _currentIndex = (_currentIndex - 1).Mod(_items.Count);
-        VisibleWindow = BuildVisibleWindow();
-        FocusChanged?.Invoke();
+        var snapshot = BuildVisibleWindow();
+        VisibleWindow = snapshot;
+        FocusChanged?.Invoke(snapshot);
     }
 
     VisibleSlot[] BuildVisibleWindow()
