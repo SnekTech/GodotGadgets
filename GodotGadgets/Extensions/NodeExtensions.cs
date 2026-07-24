@@ -13,9 +13,9 @@ public static class NodeExtensions
             }
         }
 
-        public IEnumerable<T> GetChildrenOfType<T>() where T : Node => node.GetChildren().OfType<T>();
+        public IEnumerable<T> GetChildrenOfType<T>() => node.GetChildren().OfType<T>();
 
-        public T? GetFirstChildOfType<T>() where T : Node => node.GetChildrenOfType<T>().FirstOrDefault();
+        public T? GetFirstChildOfType<T>() => node.GetChildrenOfType<T>().FirstOrDefault();
 
         public T AddImmediateChild<T>() where T : Node, new()
         {
