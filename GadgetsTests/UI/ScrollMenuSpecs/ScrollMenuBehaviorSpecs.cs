@@ -95,13 +95,13 @@ public class ScrollMenuBehaviorSpecs
         await prevSlot.Item.Should().BeSameReferenceAs(items[0]);
         await nextSlot.Item.Should().BeSameReferenceAs(items[2]);
     }
-    
+
     [Test]
     public async Task navigate_up_from_first_wraps_to_last_with_correct_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
-        
+
         menu.NavigateUp();
         var window = menu.VisibleWindow;
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
@@ -111,13 +111,13 @@ public class ScrollMenuBehaviorSpecs
         await prevSlot.Item.Should().BeSameReferenceAs(items[^2]);
         await nextSlot.Item.Should().BeSameReferenceAs(items[0]);
     }
-    
+
     [Test]
     public async Task navigate_down_from_last_wraps_to_first_with_correct_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
-        
+
         // first, jump to last
         menu.NavigateUp();
         menu.NavigateDown();
@@ -130,7 +130,7 @@ public class ScrollMenuBehaviorSpecs
         await prevSlot.Item.Should().BeSameReferenceAs(items[^1]);
         await nextSlot.Item.Should().BeSameReferenceAs(items[1]);
     }
-    
+
 
     [Test]
     public async Task focus_changed_event_fires_after_navigation()
@@ -138,7 +138,7 @@ public class ScrollMenuBehaviorSpecs
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
         var fired = false;
-        menu.FocusChanged += _ => fired = true;
+        menu.FocusChanged += (_, _) => fired = true;
 
         menu.NavigateDown();
 
@@ -151,7 +151,7 @@ public class ScrollMenuBehaviorSpecs
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
         IReadOnlyList<VisibleSlot>? latestWindow = null;
-        menu.FocusChanged += window => latestWindow = window;
+        menu.FocusChanged += (window, _) => latestWindow = window;
 
         menu.NavigateDown();
 

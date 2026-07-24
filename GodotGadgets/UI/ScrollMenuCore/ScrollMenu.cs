@@ -15,22 +15,25 @@ public sealed class ScrollMenu
 
     public IScrollMenuItem CurrentFocused => _items[_currentIndex];
     public IReadOnlyList<VisibleSlot> VisibleWindow { get; private set; }
-    public event Action<IReadOnlyList<VisibleSlot>>? FocusChanged;
+    public event Action<IReadOnlyList<VisibleSlot>, NavigateDirection>? FocusChanged;
 
     public void NavigateDown()
     {
         _currentIndex = (_currentIndex + 1).Mod(_items.Count);
-        var snapshot = BuildVisibleWindow();
-        VisibleWindow = snapshot;
-        FocusChanged?.Invoke(snapshot);
+        EmitChange(NavigateDirection.Down);
     }
 
     public void NavigateUp()
     {
         _currentIndex = (_currentIndex - 1).Mod(_items.Count);
+        EmitChange(NavigateDirection.Up);
+    }
+
+    void EmitChange(NavigateDirection direction)
+    {
         var snapshot = BuildVisibleWindow();
         VisibleWindow = snapshot;
-        FocusChanged?.Invoke(snapshot);
+        FocusChanged?.Invoke(snapshot, direction);
     }
 
     VisibleSlot[] BuildVisibleWindow()
@@ -48,6 +51,12 @@ public sealed class ScrollMenu
 
         return window;
     }
+}
+
+public enum NavigateDirection
+{
+    Up,
+    Down,
 }
 
 public readonly record struct VisibleSlot(IScrollMenuItem Item, ItemProminence Prominence);
