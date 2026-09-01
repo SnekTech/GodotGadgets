@@ -1,4 +1,6 @@
-﻿namespace GodotGadgets.UI.ScrollMenuCore;
+﻿using System.Runtime.CompilerServices;
+
+namespace GodotGadgets.UI.ScrollMenuCore;
 
 public sealed class ScrollMenu
 {
@@ -15,25 +17,55 @@ public sealed class ScrollMenu
 
     public IScrollMenuItem CurrentFocused => _items[_currentIndex];
     public IReadOnlyList<VisibleSlot> VisibleWindow { get; private set; }
-    public event Action<IReadOnlyList<VisibleSlot>, NavigateDirection>? FocusChanged;
 
-    public void NavigateDown()
+    public ScrollMenuEffect Handle(ScrollMenuInput input)
     {
-        _currentIndex = (_currentIndex + 1).Mod(_items.Count);
-        EmitChange(NavigateDirection.Down);
+        return input switch
+        {
+            NavigateInput { Direction: NavigateDirection.Up } => Move(-1, NavigateDirection.Up),
+            NavigateInput { Direction: NavigateDirection.Down } => Move(+1, NavigateDirection.Down),
+            ConfirmInput => new ConfirmRequested(CurrentFocused),
+            ClickInput { Item: var item } when item == CurrentFocused => new ConfirmRequested(item),
+            ClickInput { Item: var item } => Focus(item),
+            _ => throw new SwitchExpressionException(),
+        };
     }
 
-    public void NavigateUp()
+    public ScrollMenuEffect NavigateUp() => Handle(new NavigateInput(NavigateDirection.Up));
+    public ScrollMenuEffect NavigateDown() => Handle(new NavigateInput(NavigateDirection.Down));
+
+    ScrollMenuEffect Move(int step, NavigateDirection direction)
     {
-        _currentIndex = (_currentIndex - 1).Mod(_items.Count);
-        EmitChange(NavigateDirection.Up);
+        _currentIndex = (_currentIndex + step).Mod(_items.Count);
+        return Emit(direction);
     }
 
-    void EmitChange(NavigateDirection direction)
+    ScrollMenuEffect Focus(IScrollMenuItem item)
+    {
+        var targetIndex = IndexOf(item);
+        var direction = targetIndex < _currentIndex ? NavigateDirection.Up : NavigateDirection.Down;
+        _currentIndex = targetIndex;
+        return Emit(direction);
+    }
+
+    ScrollMenuEffect Emit(NavigateDirection direction)
     {
         var snapshot = BuildVisibleWindow();
         VisibleWindow = snapshot;
-        FocusChanged?.Invoke(snapshot, direction);
+        return new FocusMoved(snapshot, direction);
+    }
+
+    int IndexOf(IScrollMenuItem item)
+    {
+        for (var i = 0; i < _items.Count; i++)
+        {
+            if (ReferenceEquals(_items[i], item))
+            {
+                return i;
+            }
+        }
+
+        throw new ArgumentException("clicked item is not a member of this menu");
     }
 
     VisibleSlot[] BuildVisibleWindow()

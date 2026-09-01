@@ -4,6 +4,7 @@ using TUnit.Assertions.Should.Extensions;
 
 namespace GadgetsTests.UI.ScrollMenuSpecs;
 
+// todo: use AwesomeAssertions
 public class ScrollMenuBehaviorSpecs
 {
     [Test]
@@ -131,31 +132,31 @@ public class ScrollMenuBehaviorSpecs
         await nextSlot.Item.Should().BeSameReferenceAs(items[1]);
     }
 
-
     [Test]
-    public async Task focus_changed_event_fires_after_navigation()
+    public async Task navigation_returns_focus_moved_effect_with_updated_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
-        var fired = false;
-        menu.FocusChanged += (_, _) => fired = true;
 
-        menu.NavigateDown();
+        var effect = menu.NavigateDown();
 
-        await fired.Should().BeTrue();
+        var moved = effect as FocusMoved;
+        await moved.Should().NotBeNull();
+        await moved!.Window[1].Item.Should().BeSameReferenceAs(items[1]);
+        await moved.Window[1].Prominence.Should().BeEqualTo(ItemProminence.Focused);
     }
 
     [Test]
-    public async Task godot_layer_can_react_to_focus_changed_to_update_ui()
+    public async Task godot_layer_can_react_to_effect_to_update_ui()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
-        IReadOnlyList<VisibleSlot>? latestWindow = null;
-        menu.FocusChanged += (window, _) => latestWindow = window;
 
-        menu.NavigateDown();
+        var effect = menu.Handle(new NavigateInput(NavigateDirection.Down));
+        var moved = effect as FocusMoved;
 
-        await latestWindow.Should().NotBeNull();
-        await latestWindow![1].Prominence.Should().BeEqualTo(ItemProminence.Focused);
+        await moved.Should().NotBeNull();
+        await moved!.Window[1].Item.Should().BeSameReferenceAs(items[1]);
+        await moved.Direction.Should().BeEqualTo(NavigateDirection.Down);
     }
 }
