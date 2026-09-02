@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
     <PackageReference Include="TUnit" Version="1.6*" />
-    <PackageReference Include="TUnit.Assertions.Should" Version="1.61.29-beta" />
   </ItemGroup>
 
   <ItemGroup>

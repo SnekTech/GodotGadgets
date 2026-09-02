@@ -1,38 +1,34 @@
+using AwesomeAssertions;
 using GodotGadgets.UI.ScrollMenuCore;
-using TUnit.Assertions.Should;
-using TUnit.Assertions.Should.Extensions;
 
 namespace GadgetsTests.UI.ScrollMenuSpecs;
 
-// todo: use AwesomeAssertions
 public class ScrollMenuBehaviorSpecs
 {
     [Test]
-    public async Task has_a_focused_item_after_init()
+    public void has_a_focused_item_after_init()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var scrollMenu = new ScrollMenu(new ScrollMenuConfig(items));
 
         var currentFocused = scrollMenu.CurrentFocused;
 
-        await Assert.That(currentFocused)
-            .IsNotNull()
-            .And
-            .IsTypeOf<IScrollMenuItem>();
+        currentFocused.Should().NotBeNull();
+        currentFocused.Should().BeAssignableTo<IScrollMenuItem>();
     }
 
     [Test]
-    public async Task focus_on_the_first_item_by_default()
+    public void focus_on_the_first_item_by_default()
     {
         var items = MockScrollMenuItem.CreateArray(5);
 
         var scrollMenu = new ScrollMenu(new ScrollMenuConfig(items));
 
-        await scrollMenu.CurrentFocused.Should().BeSameReferenceAs(items[0]);
+        scrollMenu.CurrentFocused.Should().BeSameAs(items[0]);
     }
 
     [Test]
-    public async Task navigate_down_from_1st_item_goes_to_the_2nd_item()
+    public void navigate_down_from_1st_item_goes_to_the_2nd_item()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var scrollMenu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -40,11 +36,11 @@ public class ScrollMenuBehaviorSpecs
 
         scrollMenu.NavigateDown();
 
-        await scrollMenu.CurrentFocused.Should().BeSameReferenceAs(secondItem);
+        scrollMenu.CurrentFocused.Should().BeSameAs(secondItem);
     }
 
     [Test]
-    public async Task visible_window_centers_first_item_with_wrapped_adjacent()
+    public void visible_window_centers_first_item_with_wrapped_adjacent()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -53,18 +49,18 @@ public class ScrollMenuBehaviorSpecs
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
 
         // focus to the center
-        await midSlot.Item.Should().BeSameReferenceAs(items[0]);
-        await midSlot.Prominence.Should().BeEqualTo(ItemProminence.Focused);
+        midSlot.Item.Should().BeSameAs(items[0]);
+        midSlot.Prominence.Should().Be(ItemProminence.Focused);
         // previous slot wrap to the last item
-        await prevSlot.Item.Should().BeSameReferenceAs(items[^1]);
-        await prevSlot.Prominence.Should().BeEqualTo(ItemProminence.Adjacent);
+        prevSlot.Item.Should().BeSameAs(items[^1]);
+        prevSlot.Prominence.Should().Be(ItemProminence.Adjacent);
         // next slot is the second item
-        await nextSlot.Item.Should().BeSameReferenceAs(items[1]);
-        await nextSlot.Prominence.Should().BeEqualTo(ItemProminence.Adjacent);
+        nextSlot.Item.Should().BeSameAs(items[1]);
+        nextSlot.Prominence.Should().Be(ItemProminence.Adjacent);
     }
 
     [Test]
-    public async Task navigate_down_shifts_focus_and_visible_window()
+    public void navigate_down_shifts_focus_and_visible_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -73,14 +69,14 @@ public class ScrollMenuBehaviorSpecs
         var window = menu.VisibleWindow;
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
 
-        await midSlot.Item.Should().BeSameReferenceAs(items[1]);
-        await midSlot.Prominence.Should().BeEqualTo(ItemProminence.Focused);
-        await prevSlot.Item.Should().BeSameReferenceAs(items[0]);
-        await nextSlot.Item.Should().BeSameReferenceAs(items[2]);
+        midSlot.Item.Should().BeSameAs(items[1]);
+        midSlot.Prominence.Should().Be(ItemProminence.Focused);
+        prevSlot.Item.Should().BeSameAs(items[0]);
+        nextSlot.Item.Should().BeSameAs(items[2]);
     }
 
     [Test]
-    public async Task navigate_up_shifts_focus_and_visible_window()
+    public void navigate_up_shifts_focus_and_visible_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -91,14 +87,14 @@ public class ScrollMenuBehaviorSpecs
         var window = menu.VisibleWindow;
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
 
-        await midSlot.Item.Should().BeSameReferenceAs(items[1]);
-        await midSlot.Prominence.Should().BeEqualTo(ItemProminence.Focused);
-        await prevSlot.Item.Should().BeSameReferenceAs(items[0]);
-        await nextSlot.Item.Should().BeSameReferenceAs(items[2]);
+        midSlot.Item.Should().BeSameAs(items[1]);
+        midSlot.Prominence.Should().Be(ItemProminence.Focused);
+        prevSlot.Item.Should().BeSameAs(items[0]);
+        nextSlot.Item.Should().BeSameAs(items[2]);
     }
 
     [Test]
-    public async Task navigate_up_from_first_wraps_to_last_with_correct_window()
+    public void navigate_up_from_first_wraps_to_last_with_correct_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -107,14 +103,14 @@ public class ScrollMenuBehaviorSpecs
         var window = menu.VisibleWindow;
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
 
-        await midSlot.Item.Should().BeSameReferenceAs(items[^1]);
-        await midSlot.Prominence.Should().BeEqualTo(ItemProminence.Focused);
-        await prevSlot.Item.Should().BeSameReferenceAs(items[^2]);
-        await nextSlot.Item.Should().BeSameReferenceAs(items[0]);
+        midSlot.Item.Should().BeSameAs(items[^1]);
+        midSlot.Prominence.Should().Be(ItemProminence.Focused);
+        prevSlot.Item.Should().BeSameAs(items[^2]);
+        nextSlot.Item.Should().BeSameAs(items[0]);
     }
 
     [Test]
-    public async Task navigate_down_from_last_wraps_to_first_with_correct_window()
+    public void navigate_down_from_last_wraps_to_first_with_correct_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -126,14 +122,14 @@ public class ScrollMenuBehaviorSpecs
         var window = menu.VisibleWindow;
         var (prevSlot, midSlot, nextSlot) = (window[0], window[1], window[2]);
 
-        await midSlot.Item.Should().BeSameReferenceAs(items[0]);
-        await midSlot.Prominence.Should().BeEqualTo(ItemProminence.Focused);
-        await prevSlot.Item.Should().BeSameReferenceAs(items[^1]);
-        await nextSlot.Item.Should().BeSameReferenceAs(items[1]);
+        midSlot.Item.Should().BeSameAs(items[0]);
+        midSlot.Prominence.Should().Be(ItemProminence.Focused);
+        prevSlot.Item.Should().BeSameAs(items[^1]);
+        nextSlot.Item.Should().BeSameAs(items[1]);
     }
 
     [Test]
-    public async Task navigation_returns_focus_moved_effect_with_updated_window()
+    public void navigation_returns_focus_moved_effect_with_updated_window()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -141,13 +137,13 @@ public class ScrollMenuBehaviorSpecs
         var effect = menu.NavigateDown();
 
         var moved = effect as FocusMoved;
-        await moved.Should().NotBeNull();
-        await moved!.Window[1].Item.Should().BeSameReferenceAs(items[1]);
-        await moved.Window[1].Prominence.Should().BeEqualTo(ItemProminence.Focused);
+        moved.Should().BeOfType<FocusMoved>();
+        moved.Window[1].Item.Should().BeSameAs(items[1]);
+        moved.Window[1].Prominence.Should().Be(ItemProminence.Focused);
     }
 
     [Test]
-    public async Task godot_layer_can_react_to_effect_to_update_ui()
+    public void godot_layer_can_react_to_effect_to_update_ui()
     {
         var items = MockScrollMenuItem.CreateArray(5);
         var menu = new ScrollMenu(new ScrollMenuConfig(items));
@@ -155,8 +151,8 @@ public class ScrollMenuBehaviorSpecs
         var effect = menu.Handle(new NavigateInput(NavigateDirection.Down));
         var moved = effect as FocusMoved;
 
-        await moved.Should().NotBeNull();
-        await moved!.Window[1].Item.Should().BeSameReferenceAs(items[1]);
-        await moved.Direction.Should().BeEqualTo(NavigateDirection.Down);
+        moved.Should().BeOfType<FocusMoved>();
+        moved.Window[1].Item.Should().BeSameAs(items[1]);
+        moved.Direction.Should().Be(NavigateDirection.Down);
     }
 }
