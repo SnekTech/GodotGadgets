@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="GadgetsTests/GadgetsTests.csproj" />
+  <Project Path="GodotGadgets.FSCore.Tests/GodotGadgets.FSCore.Tests.fsproj" />
+  <Project Path="GodotGadgets.FSCore/GodotGadgets.FSCore.fsproj" />
   <Project Path="GodotGadgets/GodotGadgets.csproj" />
 </Solution>
