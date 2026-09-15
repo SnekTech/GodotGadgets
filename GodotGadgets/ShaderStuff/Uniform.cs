@@ -8,15 +8,14 @@ namespace GodotGadgets.ShaderStuff;
 [UsedImplicitly]
 public class Uniform<[MustBeVariant] T>(ShaderMaterial shaderMaterial, StringName name) where T : struct
 {
+    /// <summary>
+    /// 纯代理到材质: 本类不持有任何状态, 材质即唯一真相源。
+    /// </summary>
     [UsedImplicitly]
     public T Value
     {
-        get;
-        set
-        {
-            field = value;
-            shaderMaterial.SetShaderParameter(name, Variant.From(value));
-        }
+        get => shaderMaterial.GetShaderParameter(name).As<T>();
+        set => shaderMaterial.SetShaderParameter(name, Variant.From(value));
     }
 }
 
