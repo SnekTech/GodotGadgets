@@ -2,134 +2,70 @@
 
 namespace GodotGadgets.UI.Pagination;
 
-public interface IPaginationUI
-{
-    // 导航事件
-    event Action? FirstPageRequested;
-    event Action? PreviousPageRequested;
-    event Action? NextPageRequested;
-    event Action? LastPageRequested;
-
-    // 页码显示
-    void SetPageText(int currentPage, int totalPages);
-
-    // 导航按钮的启用/禁用状态
-    void SetNavigationEnabled(bool canGoFirst, bool canGoPrevious, bool canGoNext, bool canGoLast);
-
-    // 内容区域管理
-    void ClearContent();
-    void AddContentItem(Control item);
-}
-
-public interface IAsyncContent<in TData>
-{
-    Task InitAsync(TData data, CancellationToken ct = default);
-}
-
+/// <summary>
+/// 把翻页状态接到视图上：导航事件 → 纯转移 → 取数 → 渲染。
+/// <para>
+/// 取数走 <see cref="Func{T,TResult}"/> 缝（今天两个数据源都是内存切片，同步即可）。
+/// 这里**没有** async / CancellationToken / 锁 / 事件回灌 —— 因为核心不含异步，也就不存在"迟到的结果"。
+/// 将来真接异步数据源时，再引入代号（generation）匹配即可，<see cref="PaginationState"/> 不需要变。
+/// </para>
+/// </summary>
 public sealed class PaginationBinder<TItem> : IDisposable
 {
-    readonly IPaginationUI _ui;
-    readonly Pagination<TItem> _pagination;
+    readonly IPaginationView _view;
+    readonly Func<PageRequest, PageResult<TItem>> _fetchPage;
     readonly Func<TItem, Control> _entryFactory;
 
-    CancellationTokenSource? _contentCts;
-    readonly List<Task> _pendingContentTasks = [];
-
-    // 保存委托引用，以便移除事件
-    readonly Action _onPrev;
-    readonly Action _onNext;
-    readonly Action _onFirst;
-    readonly Action _onLast;
-    readonly Action _onDataChanged;
+    PaginationState _state;
 
     public PaginationBinder(
-        IPaginationUI ui,
-        Pagination<TItem> pagination,
+        IPaginationView view,
+        int pageSize,
+        Func<PageRequest, PageResult<TItem>> fetchPage,
         Func<TItem, Control> entryFactory
     )
     {
-        _ui = ui;
-        _pagination = pagination;
+        _view = view;
+        _fetchPage = fetchPage;
         _entryFactory = entryFactory;
+        _state = PaginationState.Initial(pageSize);
 
-        _onPrev = () => pagination.GoToPreviousPageAsync().Fire();
-        _onNext = () => pagination.GoToNextPageAsync().Fire();
-        _onFirst = () => pagination.GoToFirstPageAsync().Fire();
-        _onLast = () => pagination.GoToLastPageAsync().Fire();
-        _onDataChanged = () => RefreshAsync().Fire();
+        _view.NavigationRequested += OnNavigationRequested;
 
-        ui.PreviousPageRequested += _onPrev;
-        ui.NextPageRequested += _onNext;
-        ui.FirstPageRequested += _onFirst;
-        ui.LastPageRequested += _onLast;
-
-        _pagination.DataChanged += _onDataChanged;
-
-        // 初始加载
-        pagination.LoadInitialAsync().Fire();
+        Render(); // 绑定即渲染第 0 页（等价于旧的 LoadInitialAsync）
     }
 
-    async Task RefreshAsync()
+    void OnNavigationRequested(PageNav nav)
     {
-        _contentCts?.CancelAndDispose();
-        _contentCts = new CancellationTokenSource();
+        var next = _state.Go(nav);
+        if (next == _state) return; // 首页按"上一页"之类：状态没变，也就不必重新取数
 
-        if (_pendingContentTasks.Count > 0)
-        {
-            try
-            {
-                await Task.WhenAll(_pendingContentTasks);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-
-            _pendingContentTasks.Clear();
-        }
-
-        UpdateNavigationState();
-        UpdatePageText();
-        UpdateContent();
-
-        return;
-
-        void UpdateNavigationState()
-        {
-            _ui.SetNavigationEnabled(
-                _pagination.HasFirstPage,
-                _pagination.HasPreviousPage,
-                _pagination.HasNextPage,
-                _pagination.HasLastPage);
-        }
-
-        void UpdateContent()
-        {
-            _ui.ClearContent();
-            foreach (var item in _pagination.CurrentItems)
-            {
-                var control = _entryFactory(item);
-                _ui.AddContentItem(control);
-
-                if (control is IAsyncContent<TItem> asyncContent)
-                {
-                    var task = asyncContent.InitAsync(item, _contentCts.Token);
-                    _pendingContentTasks.Add(task);
-                }
-            }
-        }
-
-        void UpdatePageText() => _ui.SetPageText(_pagination.CurrentPageIndex + 1, _pagination.TotalPages);
+        _state = next;
+        Render();
     }
 
-    public void Dispose()
+    void Render()
     {
-        _contentCts?.CancelAndDispose();
-        _pagination.Dispose();
+        var result = _fetchPage(_state.CurrentRequest);
+        _state = _state.WithTotalItemCount(result.TotalItemCount);
+        // 若归一化真的改了页码（取数期间总数缩水），本次显示的条目会对不上页码。
+        // 今天数据在页面的生命周期内是稳定的，所以不处理；真要处理就是在这里重取一次。
 
-        _ui.PreviousPageRequested -= _onPrev;
-        _ui.NextPageRequested -= _onNext;
-        _ui.FirstPageRequested -= _onFirst;
-        _ui.LastPageRequested -= _onLast;
-        _pagination.DataChanged -= _onDataChanged;
+        _view.ShowPage(_state.ToViewData());
+
+        var items = result.Items;
+        var controls = new Control[items.Count];
+        for (var i = 0; i < items.Count; i++) controls[i] = _entryFactory(items[i]);
+        _view.ShowItems(controls);
+
+        // 条目自己可能还要异步初始化（卡片动画等）——交给它 fire-and-forget。
+        // 这里刻意**不** await：await 之后再碰节点正是"续体撞上已销毁节点"的窗口来源
+        // （旧实现在这里 await Task.WhenAll 然后写 _ui，就是审计里的 #3）。
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (controls[i] is IAsyncContent<TItem> asyncContent) asyncContent.InitAsync(items[i]).Fire();
+        }
     }
+
+    public void Dispose() => _view.NavigationRequested -= OnNavigationRequested;
 }
