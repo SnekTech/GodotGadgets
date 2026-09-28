@@ -23,11 +23,10 @@ public interface IPaginationView
 }
 
 /// <summary>
-/// 内容条目在入树后还需要异步初始化时实现它（例如卡片要播一段入场动画）。
-/// 由 binder 启动、fire-and-forget —— 所以 <see cref="InitAsync"/> 里 await 之后**不要**再碰节点，
-/// 除非先检查与那棵树同命的 token（见 docs/prompts/await-node-lifetime-audit.md）。
+/// 内容条目在入树后需要自己初始化时实现它（此时节点已在树里，可以安全地碰场景节点）。
+/// 由 binder 在 <see cref="IPaginationView.ShowItems"/> 之后同步调用；需要异步的部分由条目自己 fire-and-forget。
 /// </summary>
-public interface IAsyncContent<in TData>
+public interface IInitializableContent<in TData>
 {
-    Task InitAsync(TData data, CancellationToken ct = default);
+    void Init(TData data);
 }

@@ -1,6 +1,4 @@
-﻿using GodotGadgets.Tasks;
-
-namespace GodotGadgets.UI.Pagination;
+﻿namespace GodotGadgets.UI.Pagination;
 
 /// <summary>
 /// 把翻页状态接到视图上：导航事件 → 纯转移 → 取数 → 渲染。
@@ -58,12 +56,10 @@ public sealed class PaginationBinder<TItem> : IDisposable
         for (var i = 0; i < items.Count; i++) controls[i] = _entryFactory(items[i]);
         _view.ShowItems(controls);
 
-        // 条目自己可能还要异步初始化（卡片动画等）——交给它 fire-and-forget。
-        // 这里刻意**不** await：await 之后再碰节点正是"续体撞上已销毁节点"的窗口来源
-        // （旧实现在这里 await Task.WhenAll 然后写 _ui，就是审计里的 #3）。
+        // 条目入树后自己初始化（此刻节点已经在树里）；同步调用，需要异步的部分由条目自己 fire-and-forget。
         for (var i = 0; i < items.Count; i++)
         {
-            if (controls[i] is IAsyncContent<TItem> asyncContent) asyncContent.InitAsync(items[i]).Fire();
+            if (controls[i] is IInitializableContent<TItem> content) content.Init(items[i]);
         }
     }
 
