@@ -1,9 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using Dumpify;
 
-namespace GodotGadgets.Extensions;
+// use Godot namespace for convenience
+namespace Godot;
 
-public static class CommonExtensions
+public static class ExtraGodotExtensions
 {
     public static void DumpGd<T>(
         this T? obj,
@@ -36,30 +37,5 @@ public static class CommonExtensions
             typeRenderingConfig,
             autoLabel
         ));
-    }
-
-    public static T PickRandom<T>(this List<T> list)
-    {
-        var randomIndex = GD.RandRange(0, list.Count - 1);
-        return list[randomIndex];
-    }
-
-    public static float Clamp01(this float x) => float.Clamp(x, 0, 1);
-    public static double Clamp01(this double x) => double.Clamp(x, 0, 1);
-
-    public static Vector2I ToVector2I(this Vector2 vector2)
-    {
-        var (x, y) = vector2.Round();
-        return new Vector2I((int)x, (int)y);
-    }
-
-    extension<T>(IEnumerable<T> elements)
-    {
-        public IEnumerable<T> Shuffle()
-        {
-            var arr = elements.ToArray();
-            Random.Shared.Shuffle(arr);
-            return arr;
-        }
     }
 }
