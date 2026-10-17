@@ -1,24 +1,20 @@
 ﻿using GodotGadgets.Tasks;
+using GodotTask;
 using GTweens.Tweens;
-using GTweensGodot.Extensions;
 
 namespace GodotGadgets.TweenStuff;
 
 [UsedImplicitly]
 public sealed class CancellableTweenHolder : IDisposable
 {
-    CancellationTokenSource _ctsPrevious = new();
+    readonly LatestAction _latestAction = new();
 
-    public Task CancelPreviousAndPlayAsync(GTween newTween, CancellationToken ct = default)
-    {
-        _ctsPrevious.CancelAndDispose();
-        _ctsPrevious = new CancellationTokenSource();
+    public GDTask CancelPreviousAndPlayAsync(GTween newTween, CancellationToken ct = default) =>
+        _latestAction.RunAsync(async latestToken =>
+        {
+            using var linked = ct.LinkTo(latestToken);
+            await newTween.PlayAsyncGD(linked.Token);
+        });
 
-        return newTween.PlayAsync(ct.LinkTo(_ctsPrevious.Token).Token);
-    }
-
-    public void Dispose()
-    {
-        _ctsPrevious.Dispose();
-    }
+    public void Dispose() => _latestAction.Dispose();
 }

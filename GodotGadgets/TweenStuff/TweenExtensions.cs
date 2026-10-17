@@ -10,14 +10,11 @@ public static class TweenExtensions
 {
     extension(CanvasItem target)
     {
-        public GDTask FadeOutAsync(float duration, CancellationToken ct = default)
-            => target.TweenAlphaAsync(0, duration, ct);
+        public GDTask FadeOutAsync(float duration, CancellationToken ct = default) =>
+            target.TweenAlphaAsync(0, duration, ct);
 
-        public GDTask FadeInAsync(float duration, CancellationToken ct = default)
-        {
-            target.Modulate = target.Modulate with { A = 0 };
-            return target.TweenAlphaAsync(1, duration, ct);
-        }
+        public GDTask FadeInAsync(float duration, CancellationToken ct = default) =>
+            target.TweenAlphaAsync(1, duration, ct);
 
         GDTask TweenAlphaAsync(float to, float duration, CancellationToken ct = default) =>
             target.TweenModulateAlpha(to, duration)
@@ -27,7 +24,8 @@ public static class TweenExtensions
 
     extension(Control target)
     {
-        public async GDTask SlideInAsync(Vector2 destinationGlobal, float duration = 0.6f, CancellationToken ct = default)
+        public async GDTask SlideInAsync(Vector2 destinationGlobal, float duration = 0.6f,
+            CancellationToken ct = default)
         {
             target.Show();
             await target.TweenGlobalPosition(destinationGlobal, duration)
