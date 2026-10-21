@@ -1,12 +1,10 @@
 ﻿namespace GodotGadgets.TooltipSystem;
 
+// todo: add some tests
 public static class TooltipPlacement
 {
-    public const float DefaultMargin = 10f;
-
     /// <summary>水平优先右侧、放不下翻左侧；垂直优先贴目标顶部往下、放不下翻上方；最后一律钳进视口。</summary>
-    public static Vector2 Resolve(Rect2 targetRect, Vector2 tooltipSize, Vector2 viewportSize,
-        float margin = DefaultMargin)
+    public static Vector2 Resolve(Rect2 targetRect, Vector2 tooltipSize, Vector2 viewportSize, float margin)
     {
         var x = FitsOnTheRight() ? targetRect.End.X + margin : targetRect.Position.X - margin - tooltipSize.X;
         var y = FitsBelow() ? targetRect.Position.Y : targetRect.Position.Y - margin - tooltipSize.Y;
