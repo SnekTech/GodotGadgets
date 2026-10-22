@@ -17,13 +17,13 @@ public sealed class TooltipHost(TooltipConfig config, ITooltipRenderer renderer,
     TooltipView? _rendered;
     HoverKey _nextKey;
 
-    bool _disposed;
+    bool _stopped;
 
-    public void Stop() => _disposed = true;
+    public void Close() => _stopped = true;
 
     public IDisposable Attach(TooltipSource source, TooltipContent content)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_stopped, this);
 
         _nextKey = _nextKey.GetNext();
         var key = _nextKey;
@@ -43,14 +43,14 @@ public sealed class TooltipHost(TooltipConfig config, ITooltipRenderer renderer,
 
     public void Advance()
     {
-        if (_disposed) return;
+        if (_stopped) return;
 
         if (_state.NeedsTick) Dispatch(TooltipState.Input.Tick.Instance);
     }
 
     void Dispatch(TooltipState.Input input)
     {
-        if (_disposed) return;
+        if (_stopped) return;
 
         var (nextState, presentation) = _state.Update(config, clock(), input);
         _state = nextState;
