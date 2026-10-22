@@ -11,7 +11,7 @@ public interface ITooltipAttacher
 }
 
 public sealed class TooltipHost(TooltipConfig config, ITooltipRenderer renderer, Func<TimeSpan> clock)
-    : ITooltipAttacher, IDisposable
+    : ITooltipAttacher
 {
     TooltipState _state = TooltipState.Initial;
     TooltipView? _rendered;
@@ -19,7 +19,7 @@ public sealed class TooltipHost(TooltipConfig config, ITooltipRenderer renderer,
 
     bool _disposed;
 
-    public void Dispose() => _disposed = true;
+    public void Stop() => _disposed = true;
 
     public IDisposable Attach(TooltipSource source, TooltipContent content)
     {
