@@ -158,6 +158,18 @@ public class TooltipStateMachineSpecs
     }
 
     [Test]
+    public void from_view_to_same_view_should_remain_unchanged()
+    {
+        var view1 = View(Key1);
+
+        var transition = TooltipTransition.From(view1, view1);
+        var nullToNullTransition = TooltipTransition.From(null, null);
+
+        transition.Should().Be(new TooltipTransition.Unchanged());
+        nullToNullTransition.Should().Be(new TooltipTransition.Unchanged());
+    }
+    
+    [Test]
     public void from_view_to_view_should_replace_with_new_view()
     {
         var view1 = View(Key1);

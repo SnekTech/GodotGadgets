@@ -55,11 +55,9 @@ public sealed class TooltipHost(TooltipConfig config, ITooltipRenderer renderer,
         var (nextState, presentation) = _state.Update(config, clock(), input);
         _state = nextState;
 
-        if (presentation == _rendered) return;
-
-        var previous = _rendered;
+        var transition = TooltipTransition.From(_rendered, presentation);
         _rendered = presentation;
 
-        renderer.Render(TooltipTransition.From(previous, presentation));
+        renderer.Render(transition);
     }
 }
