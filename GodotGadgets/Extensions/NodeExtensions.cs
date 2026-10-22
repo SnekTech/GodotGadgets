@@ -34,6 +34,7 @@ public static class NodeExtensions
 
     extension(Area2D area2D)
     {
+        // todo: safely get the shape
         public CollisionShape2D CollisionShape => area2D.GetFirstChildOfType<CollisionShape2D>()!;
     }
 
