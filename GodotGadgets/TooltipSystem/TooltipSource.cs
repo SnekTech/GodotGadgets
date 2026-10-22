@@ -34,8 +34,15 @@ public abstract record TooltipSource
 
     public sealed record FromArea(Area2D Target) : TooltipSource
     {
-        public override Rect2 GlobalRect =>
-            Target.CollisionShape.GetShape().GetRect() with { Position = Target.GlobalPosition };
+        /// <summary>
+        /// 期望 Area2D 之下有且仅有一个矩形碰撞形状，取其全局包围盒；
+        /// 其余情况退化成 target 位置上的一个零尺寸矩形。
+        /// </summary>
+        public override Rect2 GlobalRect => Target.GetChildrenOfType<CollisionShape2D>().ToList() switch
+        {
+            [{ Shape: RectangleShape2D rectangle } collider] => collider.GlobalTransform * rectangle.GetRect(),
+            _ => new Rect2(Target.GlobalPosition, Vector2.Zero),
+        };
 
         protected override void AddHoverHandlers(Action onPointerEntered, Action onPointerExited)
         {

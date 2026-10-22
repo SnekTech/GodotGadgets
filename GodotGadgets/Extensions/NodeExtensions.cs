@@ -32,12 +32,6 @@ public static class NodeExtensions
         }
     }
 
-    extension(Area2D area2D)
-    {
-        // todo: safely get the shape
-        public CollisionShape2D CollisionShape => area2D.GetFirstChildOfType<CollisionShape2D>()!;
-    }
-
     public static void SetStyleBox(this Panel panel, StyleBox styleBox)
     {
         const string panelStylePath = "theme_override_styles/panel";
