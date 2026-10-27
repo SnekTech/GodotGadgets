@@ -2,6 +2,11 @@
 
 public abstract record InputDevice;
 
+public sealed record Mouse : InputDevice
+{
+    public static Mouse Instance { get; } = new();
+}
+
 public sealed record Keyboard : InputDevice
 {
     public static Keyboard Instance { get; } = new();

@@ -1,13 +1,18 @@
 ﻿namespace GodotGadgets.InputProcessing;
 
+/// <summary>
+/// The instance needs some node (autoload) to call <see cref="Handle"/> to function properly.
+/// </summary>
 public sealed class DeviceDetector
 {
+    const float JoystickMotionDetectDeadzone = 0.2f;
+
     public InputDevice Current { get; private set; } = Unknown.Instance;
     public event DeviceChangedInputHandler? DeviceChanged;
-    
+
     // todo: handle controller plugin or pullout
 
-    public void Process(InputEvent @event)
+    public void Handle(InputEvent @event)
     {
         var detected = Classify(@event);
         if (detected is Unknown || detected == Current)
@@ -20,18 +25,24 @@ public sealed class DeviceDetector
         DeviceChanged?.Invoke(previous, detected);
     }
 
-    static InputDevice Classify(InputEvent @event) => @event switch
+    static InputDevice Classify(InputEvent evt) => evt switch
     {
-        InputEventKey or InputEventMouse => Keyboard.Instance,
-        InputEventJoypadButton joypadButton => new Gamepad(joypadButton.Device.ToGamepadBrand()),
-        InputEventJoypadMotion joypadMotion => new Gamepad(joypadMotion.Device.ToGamepadBrand()),
+        InputEventMouse => Mouse.Instance,
+        InputEventKey => Keyboard.Instance,
+        InputEventJoypadButton { Device: var deviceId } => deviceId.ToGamepad(),
+        InputEventJoypadMotion
+            {
+                Axis: JoyAxis.LeftX or JoyAxis.LeftY or JoyAxis.RightX or JoyAxis.RightY,
+                Device: var deviceId, AxisValue: var axisValue,
+            }
+            when MathF.Abs(axisValue) > JoystickMotionDetectDeadzone => deviceId.ToGamepad(),
         _ => Unknown.Instance,
     };
 }
 
 public delegate void DeviceChangedInputHandler(InputDevice previous, InputDevice detected);
 
-file static class DeviceExtension
+public static class Gamepads
 {
     static readonly HashSet<string> PlayStationKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -42,27 +53,45 @@ file static class DeviceExtension
         "Nintendo", "Switch",
     };
 
+    static readonly Gamepad Xbox = new(GamepadBrand.Xbox);
+    static readonly Gamepad PlayStation = new(GamepadBrand.PlayStation);
+    static readonly Gamepad Nintendo = new(GamepadBrand.Nintendo);
+
+    static readonly Dictionary<int, GamepadBrand> BrandCache = [];
+
+    public static void ForgetCache(int deviceId) => BrandCache.Remove(deviceId);
+
     extension(int deviceId)
     {
-        internal GamepadBrand ToGamepadBrand()
+        internal Gamepad ToGamepad()
         {
-            var name = Input.GetJoyName(deviceId);
+            if (deviceId < 0 || !Input.IsJoyKnown(deviceId)) return Xbox;
 
-            return name switch
+            if (!BrandCache.TryGetValue(deviceId, out var brand))
             {
-                _ when name.ContainsAnyKeywordFrom(PlayStationKeywords)
-                    => GamepadBrand.PlayStation,
+                brand = Input.GetJoyName(deviceId).ToGamepadBrand();
+                BrandCache[deviceId] = brand;
+            }
 
-                _ when name.ContainsAnyKeywordFrom(NintendoKeywords)
-                    => GamepadBrand.Nintendo,
-
-                _ => GamepadBrand.Xbox, // XInput / generic → default to Xbox
+            return brand switch
+            {
+                GamepadBrand.Xbox => Xbox,
+                GamepadBrand.PlayStation => PlayStation,
+                GamepadBrand.Nintendo => Nintendo,
+                _ => Xbox,
             };
         }
     }
 
     extension(string deviceName)
     {
+        GamepadBrand ToGamepadBrand() => deviceName switch
+        {
+            _ when deviceName.ContainsAnyKeywordFrom(PlayStationKeywords) => GamepadBrand.PlayStation,
+            _ when deviceName.ContainsAnyKeywordFrom(NintendoKeywords) => GamepadBrand.Nintendo,
+            _ => GamepadBrand.Xbox,
+        };
+        
         bool ContainsAnyKeywordFrom(HashSet<string> keywords) =>
             keywords.Any(keyword => deviceName.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
