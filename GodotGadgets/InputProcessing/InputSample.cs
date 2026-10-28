@@ -12,6 +12,6 @@ public abstract record InputSample
         public static Keyboard Instance { get; } = new();
     }
 
-    public sealed record GamepadButton(Gamepad Gamepad) : InputSample;
-    public sealed record GamepadAxis(Gamepad Gamepad, float Value) : InputSample;
+    public sealed record GamepadButton(InputDevice.Gamepad Gamepad) : InputSample;
+    public sealed record GamepadAxis(InputDevice.Gamepad Gamepad, float Value) : InputSample;
 }

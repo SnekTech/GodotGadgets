@@ -9,7 +9,7 @@ public sealed class DeviceDetector
 {
     const float JoystickMotionDetectDeadzone = 0.2f;
 
-    public InputDevice Current { get; private set; } = Unknown.Instance;
+    public InputDevice Current { get; private set; } = InputDevice.NoDevice.Instance;
     public event DeviceChangedInputHandler? DeviceChanged;
 
     // todo: handle controller plugin or pullout
@@ -31,8 +31,8 @@ public sealed class DeviceDetector
 
     static InputDevice Classify(InputSample sample) => sample switch
     {
-        InputSample.Mouse => Mouse.Instance,
-        InputSample.Keyboard => Keyboard.Instance,
+        InputSample.Mouse => InputDevice.Mouse.Instance,
+        InputSample.Keyboard => InputDevice.Keyboard.Instance,
         InputSample.GamepadButton { Gamepad: var gamepad } => gamepad,
         InputSample.GamepadAxis { Gamepad: var gamepad } => gamepad,
         _ => throw new SwitchExpressionException(),
@@ -52,15 +52,15 @@ public static class Gamepads
         "Nintendo", "Switch",
     };
 
-    static readonly Gamepad Xbox = new(GamepadBrand.Xbox);
-    static readonly Gamepad PlayStation = new(GamepadBrand.PlayStation);
-    static readonly Gamepad Nintendo = new(GamepadBrand.Nintendo);
+    static readonly InputDevice.Gamepad Xbox = new(GamepadBrand.Xbox);
+    static readonly InputDevice.Gamepad PlayStation = new(GamepadBrand.PlayStation);
+    static readonly InputDevice.Gamepad Nintendo = new(GamepadBrand.Nintendo);
 
     static readonly Dictionary<int, GamepadBrand> BrandCache = [];
 
     public static void ForgetCache(int deviceId) => BrandCache.Remove(deviceId);
 
-    public static Gamepad? Find(int deviceId)
+    public static InputDevice.Gamepad? Find(int deviceId)
     {
         if (deviceId < 0 || !Input.IsJoyKnown(deviceId))
             return null;
@@ -76,7 +76,7 @@ public static class Gamepads
 
     extension(GamepadBrand brand)
     {
-        Gamepad ToGamepad() => brand switch
+        InputDevice.Gamepad ToGamepad() => brand switch
         {
             GamepadBrand.Xbox => Xbox,
             GamepadBrand.PlayStation => PlayStation,
