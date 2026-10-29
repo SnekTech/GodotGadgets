@@ -12,6 +12,7 @@ public abstract record InputDevice
         public static Keyboard Instance { get; } = new();
     }
 
+    // todo: what if player use multiple gamepads with the same brand?
     public sealed record Gamepad(GamepadBrand Brand) : InputDevice;
 
     public sealed record NoDevice : InputDevice

@@ -12,8 +12,6 @@ public sealed class DeviceDetector
     public InputDevice Current { get; private set; } = InputDevice.NoDevice.Instance;
     public event DeviceChangedInputHandler? DeviceChanged;
 
-    // todo: handle controller plugin or pullout
-
     public void Handle(InputSample sample)
     {
         if (IsRandomStickDrift(sample)) return;
@@ -29,12 +27,16 @@ public sealed class DeviceDetector
     static bool IsRandomStickDrift(InputSample sample) =>
         sample is InputSample.GamepadAxis { Value: var value } && MathF.Abs(value) < JoystickMotionDetectDeadzone;
 
-    static InputDevice Classify(InputSample sample) => sample switch
+    InputDevice Classify(InputSample sample) => sample switch
     {
         InputSample.Mouse => InputDevice.Mouse.Instance,
         InputSample.Keyboard => InputDevice.Keyboard.Instance,
         InputSample.GamepadButton { Gamepad: var gamepad } => gamepad,
         InputSample.GamepadAxis { Gamepad: var gamepad } => gamepad,
+        InputSample.GamepadConnected { Gamepad: var gamepad } => gamepad,
+        InputSample.GamepadDisconnected { Gamepad: var gamepad } when gamepad == Current
+            => InputDevice.NoDevice.Instance,
+        InputSample.GamepadDisconnected => Current,
         _ => throw new SwitchExpressionException(),
     };
 }
@@ -58,7 +60,8 @@ public static class Gamepads
 
     static readonly Dictionary<int, GamepadBrand> BrandCache = [];
 
-    public static void ForgetCache(int deviceId) => BrandCache.Remove(deviceId);
+    public static InputDevice.Gamepad? ForgetCache(int deviceId) =>
+        BrandCache.Remove(deviceId, out var brand) ? brand.ToGamepad() : null;
 
     public static InputDevice.Gamepad? Find(int deviceId)
     {

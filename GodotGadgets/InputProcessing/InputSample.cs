@@ -14,4 +14,6 @@ public abstract record InputSample
 
     public sealed record GamepadButton(InputDevice.Gamepad Gamepad) : InputSample;
     public sealed record GamepadAxis(InputDevice.Gamepad Gamepad, float Value) : InputSample;
+    public sealed record GamepadConnected(InputDevice.Gamepad Gamepad) : InputSample;
+    public sealed record GamepadDisconnected(InputDevice.Gamepad Gamepad) : InputSample;
 }

@@ -63,4 +63,26 @@ public sealed class ControllerSupportSpecs
         detector.Handle(new InputSample.GamepadButton(Xbox));
         detector.Current.Should().BeOfType<InputDevice.Gamepad>();
     }
+
+    [Test]
+    public void gamepad_connected_should_change_device_to_gamepad()
+    {
+        var detector = new DeviceDetector();
+
+        detector.Handle(new InputSample.GamepadConnected(Xbox));
+
+        detector.Current.Should().Be(Xbox);
+    }
+
+    [Test]
+    public void gamepad_disconnected_should_change_device_to_no_device()
+    {
+        var detector = new DeviceDetector();
+        
+        detector.Handle(new InputSample.GamepadButton(Xbox));
+        detector.Current.Should().Be(Xbox);
+
+        detector.Handle(new InputSample.GamepadDisconnected(Xbox));
+        detector.Current.Should().Be(InputDevice.NoDevice.Instance);
+    }
 }
