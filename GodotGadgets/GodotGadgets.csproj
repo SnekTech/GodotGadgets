@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net11.0</TargetFramework>
-        <LangVersion>default</LangVersion>
+        <LangVersion>15</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PackageId>SnekTech.GodotGadgets</PackageId>
