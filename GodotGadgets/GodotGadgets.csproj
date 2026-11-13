@@ -5,6 +5,8 @@
         <LangVersion>15</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <!-- Closed hierarchies / unions: a missing case or null arm must fail the build -->
+        <WarningsAsErrors>$(WarningsAsErrors);CS8509;CS8655</WarningsAsErrors>
         <PackageId>SnekTech.GodotGadgets</PackageId>
         <Authors>Snek</Authors>
         <Description>Utilities used for 2D game dev in Godot 4.</Description>
