@@ -1,6 +1,6 @@
 ﻿namespace GodotGadgets.InputProcessing;
 
-public abstract record InputDevice
+public closed record InputDevice
 {
     public sealed record Mouse : InputDevice
     {
